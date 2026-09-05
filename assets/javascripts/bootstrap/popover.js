@@ -69,7 +69,9 @@
 
     $tip.removeClass('fade top bottom left right in')
 
-    $tip.find('.popover-title').hide()
+    // Hide `:empty` titles.
+    // Fixes error introduced in commit 23ab81b - this was hiding ALL titles.
+    $tip.find('.popover-title:empty').hide()
   }
 
   Popover.prototype.hasContent = function () {
