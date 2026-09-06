@@ -1,5 +1,5 @@
 /*!
- * Bootstrap v3.4.7 (https://bootstrap.7pro.ca/)
+ * Bootstrap v3.4.8 (https://bootstrap.7pro.ca/)
  * Copyright 2025 Entreprise 7pro.ca Inc since v3.4.2
  * Copyright 2011-2019 Twitter Inc (now X)
  * Licensed under the MIT license
@@ -1459,6 +1459,8 @@ if (typeof jQuery === 'undefined') {
   }
 
   function sanitizeHtml(unsafeHtml, whiteList, sanitizeFn) {
+    var doc = null
+
     if (unsafeHtml.length === 0) {
       return unsafeHtml
     }
@@ -1467,11 +1469,18 @@ if (typeof jQuery === 'undefined') {
       return sanitizeFn(unsafeHtml)
     }
 
-    var createdDocument = document.implementation.createHTMLDocument('sanitization')
-    createdDocument.body.innerHTML = unsafeHtml
+    try {
+      doc = new DOMParser().parseFromString(unsafeHtml, 'text/html');
+    } catch (_) {}
+
+    if (!doc || !doc.documentElement) {
+      doc = document.implementation.createHTMLDocument('sanitization')
+      doc.body.innerHTML = unsafeHtml
+    }
 
     var whitelistKeys = $.map(whiteList, function (el, i) { return i })
-    var elements = $(createdDocument.body).find('*')
+    var body = doc.body || doc.documentElement;
+    var elements = $(body).find('*')
 
     for (var i = 0, len = elements.length; i < len; i++) {
       var el = elements[i]
@@ -1493,7 +1502,7 @@ if (typeof jQuery === 'undefined') {
       }
     }
 
-    return createdDocument.body.innerHTML
+    return body.innerHTML
   }
 
   // TOOLTIP PUBLIC CLASS DEFINITION
@@ -2107,7 +2116,9 @@ if (typeof jQuery === 'undefined') {
 
     $tip.removeClass('fade top bottom left right in')
 
-    $tip.find('.popover-title').hide()
+    // Hide `:empty` titles.
+    // Fixes error introduced in commit 23ab81b - this was hiding ALL titles.
+    $tip.find('.popover-title:empty').hide()
   }
 
   Popover.prototype.hasContent = function () {
